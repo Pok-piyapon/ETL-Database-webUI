@@ -1,0 +1,50 @@
+
+services:
+  mariadb-src:
+    image: mariadb:11
+    container_name: mariadb-src
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: src_db
+      MARIADB_USER: src_user
+      MARIADB_PASSWORD: src_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - src_data:/var/lib/mysql
+      - ./docker/mariadb-src/init:/docker-entrypoint-initdb.d
+
+  mariadb-dst:
+    image: mariadb:11
+    container_name: mariadb-dst
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: dst_db
+      MARIADB_USER: dst_user
+      MARIADB_PASSWORD: dst_password
+    ports:
+      - "3308:3306"
+    volumes:
+      - dst_data:/var/lib/mysql
+      - ./docker/mariadb-dst/init:/docker-entrypoint-initdb.d
+
+  etl:
+    build: .
+    container_name: mariadb-etl
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"  # ETL Monitor Dashboard
+    depends_on:
+      - mariadb-src
+      - mariadb-dst
+    volumes:
+      - ./etl:/app/etl
+      - ./.env:/app/.env
+    command: ["/entrypoint.sh"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  src_data:
+  dst_data:

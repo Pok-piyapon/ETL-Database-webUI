@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETL Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: monospace;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid #ddd;
+        }
+        
+        .header {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left h1 {
+            font-size: 18px;
+            font-weight: normal;
+            margin-bottom: 8px;
+        }
+        
+        .header-info {
+            font-size: 12px;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 11px;
+        }
+        
+        .header-stat {
+            text-align: right;
+        }
+        
+        .header-stat-label {
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .header-stat-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid #333;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .status-running { border-color: #000; font-weight: bold; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .stat-card {
+            padding: 15px;
+            border-right: 1px solid #ddd;
+        }
+        
+        .stat-card:last-child {
+            border-right: none;
+        }
+        
+        .stat-card h3 {
+            font-size: 11px;
+            font-weight: normal;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .progress-section {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .progress-section h3 {
+            font-size: 12px;
+            font-weight: normal;
+            margin-bottom: 8px;
+        }
+        
+        .table-progress-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table-progress-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .table-progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .table-progress-name {
+            font-weight: bold;
+        }
+        
+        .table-progress-stats {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 18px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #333;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .system-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .system-card {
+            padding: 15px;
+            border-right: 1px solid #ddd;
+        }
+        
+        .system-card:last-child {
+            border-right: none;
+        }
+        
+        .system-card h4 {
+            font-size: 11px;
+            font-weight: normal;
+            margin-bottom: 8px;
+        }
+        
+        .system-value {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .meter {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            margin-top: 5px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+            transition: width 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .meter-fill.processing {
+            animation: pulse 2s ease-in-out infinite, glow 3s ease-in-out infinite;
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 50%, #4CAF50 100%);
+            background-size: 200% 100%;
+        }
+        
+        /* Shimmer effect - light wave */
+        .meter-fill.processing::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.4) 50%, 
+                transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+        
+        /* Animated stripes */
+        .meter-fill.processing::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+            );
+            animation: stripes 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+            50% {
+                opacity: 0.9;
+                transform: scaleY(0.98);
+            }
+        }
+        
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
+        @keyframes stripes {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(20px);
+            }
+        }
+        
+        @keyframes glow {
+            0%, 100% {
+                background-position: 0% 50%;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 
+                            0 0 5px rgba(76, 175, 80, 0.3);
+            }
+            50% {
+                background-position: 100% 50%;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 
+                            0 0 15px rgba(76, 175, 80, 0.6);
+            }
+        }
+        
+        .tables-section {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tables-section h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .table-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        
+        .logs-section {
+            padding: 15px;
+        }
+        
+        .logs-section h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .log-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        .log-item {
+            padding: 4px 8px;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        
+        .worker-bar {
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 4px;
+            padding: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .worker-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+        
+        .worker-bar-label {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .worker-bar-value {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .worker-bar-track {
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .worker-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        
+        .worker-bar-fill.consumer {
+            background: linear-gradient(90deg, #2196F3, #42A5F5);
+        }
+        
+        .worker-bar-fill.completed {
+            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        }
+        
+        .worker-bar-fill.failed {
+            background: linear-gradient(90deg, #f44336, #e57373);
+        }
+        
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: #666;
+            margin-right: 8px;
+        }
+        
+        .log-level {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .log-level-INFO { color: #333; }
+        .log-level-WARNING { color: #ff9800; }
+        .log-level-ERROR { color: #f44336; }
+        
+        .settings-btn {
+            padding: 4px 10px;
+            border: 1px solid #333;
+            background: white;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        .settings-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #333;
+            padding: 20px;
+            min-width: 400px;
+        }
+        
+        .modal-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .modal-body {
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 6px 15px;
+            border: 1px solid #333;
+            background: white;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .btn-primary {
+            background: #333;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #555;
+        }
+        
+        .table-item {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        .table-item:last-child {
+            border-bottom: none;
+        }
+        
+        .table-name {
+            flex: 1;
+            font-weight: bold;
+        }
+        
+        .table-rows {
+            font-size: 11px;
+            color: #666;
+            margin-right: 10px;
+        }
+        
+        .table-status {
+            padding: 2px 6px;
+            border: 1px solid #333;
+            font-size: 10px;
+        }
+        
+        .table-processing { 
+            background: #333; 
+            color: white; 
+        }
+        
+        .table-retrying {
+            background: #FF9800;
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .current-table {
+            background: #f5f5f5;
+        }
+        
+        .error-msg {
+            font-size: 10px;
+            color: #666;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>ETL MONITOR</h1>
+                <div class="header-info">
+                    <span id="statusBadge" class="status-badge">IDLE</span>
+                    <span>TIME: <strong id="elapsedTime">00:00:00</strong></span>
+                    <span id="nextRunCountdown" style="margin-left: 10px; display: none;">
+                        NEXT RUN: <strong id="countdownTime">--</strong>
+                    </span>
+                    <button class="settings-btn" onclick="openSettings()">⚙ SETTINGS</button>
+                    <button class="settings-btn" onclick="openWorkersModal()">👷 WORKERS</button>
+                    <button class="settings-btn" id="controlBtn" onclick="toggleETL()">▶ START</button>
+                    <button class="settings-btn" onclick="openLogsModal()">📋 LOGS</button>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-stat">
+                    <div class="header-stat-label">CPU</div>
+                    <div class="header-stat-value" id="headerCpu">0%</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-label">MEMORY</div>
+                    <div class="header-stat-value" id="headerMemory">0%</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-label">WORKERS</div>
+                    <div class="header-stat-value" id="headerWorkers">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total</h3>
+                <div class="stat-value" id="totalTables">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Completed</h3>
+                <div class="stat-value" id="completedTables">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Failed</h3>
+                <div class="stat-value" id="failedTables">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Progress</h3>
+                <div class="stat-value" id="progressPercent">0%</div>
+            </div>
+        </div>
+        
+        <div class="progress-section">
+            <h3>CURRENT TABLE PROGRESS</h3>
+            <div id="currentTableProgress">
+                <div style="text-align: center; padding: 20px; color: #999;">
+                    No table processing yet...
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="tables-section">
+            <h2>Tables</h2>
+            <div class="table-list" id="tableList">
+                <div style="text-align: center; padding: 30px; color: #999;">
+                    Waiting...
+                </div>
+            </div>
+        </div>
+        
+        <div class="logs-section">
+            <h2>Logs (Last 100)</h2>
+            <div class="log-list" id="logList">
+                <div style="text-align: center; padding: 20px; color: #999;">
+                    No logs yet...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Workers Modal -->
+    <div id="workersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">WORKERS PROGRESS</div>
+            <div class="modal-body" id="workersModalContent" style="max-height: 60vh; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px; color: #999;">
+                    No workers running...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary btn" onclick="closeWorkersModal()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logs Modal -->
+    <div id="logsModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                ETL LOGS
+                <button class="settings-btn" onclick="clearLogs()" style="float: right; margin-left: 10px;">🗑️ CLEAR</button>
+                <button class="settings-btn" onclick="downloadLogs()" style="float: right;">💾 DOWNLOAD</button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 0;">
+                <div id="logsContent" style="font-family: 'Courier New', monospace; font-size: 11px; padding: 15px; background: #1e1e1e; color: #d4d4d4;">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        No logs available...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <label style="margin-right: auto;">
+                    <input type="checkbox" id="autoScrollLogs" checked> Auto-scroll
+                </label>
+                <button class="modal-btn modal-btn-secondary" onclick="closeLogsModal()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Table Details Modal -->
+    <div id="tableDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">TABLE DETAILS</div>
+            <div class="modal-body" id="tableDetailsContent" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Table details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="retryTable()">🔄 RETRY</button>
+                <button class="modal-btn modal-btn-secondary" onclick="closeTableDetailsModal()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">ETL SETTINGS (.env Configuration)</div>
+            <div class="modal-body">
+                <!-- Source Database -->
+                <h3 style="font-size: 13px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Source Database</h3>
+                <div class="form-group">
+                    <label>SRC_DB_HOST</label>
+                    <input type="text" id="srcDbHost" placeholder="10.87.74.68">
+                </div>
+                <div class="form-group">
+                    <label>SRC_DB_PORT</label>
+                    <input type="number" id="srcDbPort" value="3306">
+                </div>
+                <div class="form-group">
+                    <label>SRC_DB_NAME</label>
+                    <input type="text" id="srcDbName" placeholder="database_name">
+                </div>
+                <div class="form-group">
+                    <label>SRC_DB_USER</label>
+                    <input type="text" id="srcDbUser" placeholder="username">
+                </div>
+                <div class="form-group">
+                    <label>SRC_DB_PASSWORD</label>
+                    <input type="password" id="srcDbPassword" placeholder="password">
+                </div>
+
+                <!-- Destination Database -->
+                <h3 style="font-size: 13px; margin: 20px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Destination Database</h3>
+                <div class="form-group">
+                    <label>DST_DB_HOST</label>
+                    <input type="text" id="dstDbHost" placeholder="host.docker.internal">
+                </div>
+                <div class="form-group">
+                    <label>DST_DB_PORT</label>
+                    <input type="number" id="dstDbPort" value="3306">
+                </div>
+                <div class="form-group">
+                    <label>DST_DB_NAME</label>
+                    <input type="text" id="dstDbName" placeholder="database_name">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        Use placeholders: {YYYY} {MM} {DD} {HH} {mm} {ss}<br>
+                        Example: medkku_{YYYY}_{MM}_{DD} → medkku_2025_11_08
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="dstDbDynamic" style="width: auto; margin-right: 5px;">
+                        Use Dynamic Database Name (create new DB each run)
+                    </label>
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        When enabled, database name will be generated using current date/time
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>DST_DB_USER</label>
+                    <input type="text" id="dstDbUser" placeholder="root">
+                </div>
+                <div class="form-group">
+                    <label>DST_DB_PASSWORD</label>
+                    <input type="password" id="dstDbPassword" placeholder="password">
+                </div>
+
+                <!-- Table Filtering -->
+                <h3 style="font-size: 13px; margin: 20px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Table Filtering</h3>
+                <div class="form-group">
+                    <label>INCLUDE_TABLES (comma-separated)</label>
+                    <input type="text" id="includeTables" placeholder="table1,table2,table3">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">Leave empty to include all tables</div>
+                </div>
+                <div class="form-group">
+                    <label>EXCLUDE_TABLES (comma-separated)</label>
+                    <input type="text" id="excludeTables" placeholder="table1,table2,table3">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">Leave empty to exclude none</div>
+                </div>
+
+                <!-- ETL Configuration -->
+                <h3 style="font-size: 13px; margin: 20px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">ETL Configuration</h3>
+                <div class="form-group">
+                    <label>LOG_LEVEL</label>
+                    <select id="logLevel" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-family: monospace;">
+                        <option value="DEBUG">DEBUG</option>
+                        <option value="INFO" selected>INFO</option>
+                        <option value="WARNING">WARNING</option>
+                        <option value="ERROR">ERROR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>MAX_WORKERS (Number of parallel workers)</label>
+                    <input type="number" id="maxWorkersInput" min="1" max="50" value="20">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        Conservative: 20 | Aggressive: 50
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>BATCH_SIZE (Rows per batch)</label>
+                    <input type="number" id="batchSizeInput" min="100" max="50000" value="5000">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        Small: 1000-5000 | Large: 10000-50000
+                    </div>
+                </div>
+
+                <!-- Dynamic Performance Tuning -->
+                <h3 style="font-size: 13px; margin: 20px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Dynamic Performance Tuning</h3>
+                <div class="form-group">
+                    <label>MAX_TABLE_TIME_SECONDS</label>
+                    <input type="number" id="maxTableTime" min="0" value="0">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        0 = no time limit (recommended for stability)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>MIN_BATCH_SIZE</label>
+                    <input type="number" id="minBatchSize" min="100" value="5000">
+                </div>
+                <div class="form-group">
+                    <label>MAX_BATCH_SIZE</label>
+                    <input type="number" id="maxBatchSize" min="1000" value="10000">
+                </div>
+                <div class="form-group">
+                    <label>ETL_INTERVAL_SECONDS (Auto-run interval)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 5px;">
+                        <div>
+                            <input type="number" id="etlIntervalDays" min="0" max="365" value="0" placeholder="Days" style="width: 100%;">
+                            <div style="font-size: 10px; color: #666; text-align: center;">Days</div>
+                        </div>
+                        <div>
+                            <input type="number" id="etlIntervalHours" min="0" max="23" value="0" placeholder="Hours" style="width: 100%;">
+                            <div style="font-size: 10px; color: #666; text-align: center;">Hours</div>
+                        </div>
+                        <div>
+                            <input type="number" id="etlIntervalMinutes" min="0" max="59" value="0" placeholder="Minutes" style="width: 100%;">
+                            <div style="font-size: 10px; color: #666; text-align: center;">Minutes</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 10px; color: #666;">
+                        Set all to 0 for run-once mode. Otherwise, ETL will repeat automatically.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeSettings()">CANCEL</button>
+                <button class="btn btn-primary" onclick="saveSettings()">SAVE ALL</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Socket.IO Client Library -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <!-- Dashboard Socket.IO Script (All data fetching via WebSocket - No REST API) -->
+    <script src="{{ url_for('static', filename='dashboard_socket.js') }}"></script>
+    
+    <script>
+        // Minimal modal helper functions (moved to dashboard_socket.js)
+        function closeWorkersModal() {
+            document.getElementById('workersModal').style.display = 'none';
+            // Clear auto-update interval
+            if (window.workersModalInterval) {
+                clearInterval(window.workersModalInterval);
+                window.workersModalInterval = null;
+            }
+        }
+        
+        function closeLogsModal() {
+            document.getElementById('logsModal').style.display = 'none';
+        }
+        
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+        
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = ['settingsModal', 'workersModal', 'logsModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+-- Destination will be created empty; tables will be created by ETL as needed

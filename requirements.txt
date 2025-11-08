@@ -1,0 +1,30 @@
+# Database Drivers
+mysql-connector-python==9.0.0
+aiomysql==0.3.2
+pymysql==1.1.0
+sqlalchemy==2.0.23
+
+# Core
+python-dotenv==1.0.1
+
+# Data Processing - High Performance
+polars==1.35.1
+pandas==2.1.4
+numpy==1.26.2
+pyarrow==22.0.0
+connectorx==0.3.3
+
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+flask-socketio==5.3.5
+python-socketio==5.10.0
+
+# Monitoring
+psutil==5.9.6
+
+# JSON - Fast
+orjson==3.11.4
+
+# Optional
+mysql-replication==1.0.7
