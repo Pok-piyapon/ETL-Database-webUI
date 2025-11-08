@@ -1,50 +1,50 @@
-# 📊 MySQL ETL Pipeline with Real-time Dashboard
+# 📊 MySQL ETL Pipeline พร้อม Dashboard แบบ Real-time
 
-A high-performance, production-ready ETL (Extract, Transform, Load) pipeline for MySQL/MariaDB databases with real-time monitoring dashboard and dynamic database management.
+ระบบ ETL (Extract, Transform, Load) ประสิทธิภาพสูง พร้อมใช้งานจริงสำหรับฐานข้อมูล MySQL/MariaDB พร้อมด้วย Dashboard แบบ Real-time และการจัดการฐานข้อมูลแบบไดนามิก
 
 ![ETL Pipeline](https://img.shields.io/badge/ETL-Pipeline-blue)
 ![Python](https://img.shields.io/badge/Python-3.11-green)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## ✨ Key Features
+## ✨ ฟีเจอร์หลัก
 
-### 🚀 **High-Performance ETL**
-- **Parallel Processing**: Configurable producer-consumer architecture with async I/O
-- **Smart Batching**: Dynamic batch sizing (1K-50K rows) based on table size
-- **Connection Pooling**: Optimized aiomysql pools for maximum throughput
-- **Retry Logic**: Automatic retry with exponential backoff for failed operations
-- **Memory Efficient**: Streaming data processing to handle large datasets
+### 🚀 **ETL ประสิทธิภาพสูง**
+- **การประมวลผลแบบขนาน**: สถาปัตยกรรม producer-consumer ที่ปรับแต่งได้ด้วย async I/O
+- **Smart Batching**: ปรับขนาด batch (1K-50K แถว) อัตโนมัติตามขนาดตาราง
+- **Connection Pooling**: จัดการ connection pool ด้วย aiomysql เพื่อประสิทธิภาพสูงสุด
+- **Retry Logic**: ลองใหม่อัตโนมัติพร้อม exponential backoff เมื่อเกิดข้อผิดพลาด
+- **ประหยัดหน่วยความจำ**: ประมวลผลข้อมูลแบบ streaming รองรับข้อมูลขนาดใหญ่
 
-### 📊 **Real-time Dashboard**
-- **Live Monitoring**: WebSocket-based real-time updates (Socket.IO)
-- **Worker Progress**: Track individual producer/consumer workers per table (auto-updates every 5s)
-- **System Stats**: CPU, memory, and disk usage monitoring
-- **Table Progress**: Visual progress bars with row counts and completion status
-- **Live Logs**: Real-time log streaming with severity filtering
+### 📊 **Dashboard แบบ Real-time**
+- **ติดตามสดๆ**: อัปเดตแบบ Real-time ผ่าน WebSocket (Socket.IO)
+- **Worker Progress**: ติดตามสถานะ producer/consumer แต่ละตัวของแต่ละตาราง (อัปเดตทุก 5 วินาที)
+- **System Stats**: ติดตามการใช้งาน CPU, หน่วยความจำ และดิสก์
+- **Table Progress**: แสดงความคืบหน้าด้วย progress bar พร้อมจำนวนแถวและสถานะ
+- **Live Logs**: ดู log แบบ Real-time พร้อมกรองตามระดับความสำคัญ
 
-### 🗓️ **Dynamic Database Management**
-- **Date-based Databases**: Auto-create databases with date/time patterns
+### 🗓️ **การจัดการฐานข้อมูลแบบไดนามิก**
+- **ฐานข้อมูลตามวันที่**: สร้างฐานข้อมูลใหม่อัตโนมัติตามรูปแบบวันที่/เวลา
 - **Placeholders**: `{YYYY}`, `{MM}`, `{DD}`, `{HH}`, `{mm}`, `{ss}`
-- **Example**: `medkku_{YYYY}_{MM}_{DD}` → `medkku_2025_11_08`
-- **Versioning**: Keep historical snapshots without overwriting data
+- **ตัวอย่าง**: `medkku_{YYYY}_{MM}_{DD}` → `medkku_2025_11_08`
+- **Versioning**: เก็บประวัติแยกตามวันโดยไม่เขียนทับข้อมูลเก่า
 
-### ⚙️ **Flexible Configuration**
-- **Web UI Settings**: Configure all parameters via dashboard
-- **Environment Variables**: Full `.env` file management through UI
-- **Table Filtering**: Include/exclude specific tables with patterns
-- **Scheduled Runs**: Auto-run at configurable intervals (days/hours/minutes)
-- **Performance Tuning**: Adjust workers, batch sizes, and timeouts on-the-fly
+### ⚙️ **การตั้งค่าที่ยืดหยุ่น**
+- **ตั้งค่าผ่าน Web UI**: ปรับแต่งค่าทั้งหมดผ่าน Dashboard
+- **Environment Variables**: จัดการไฟล์ `.env` ได้ครบถ้วน
+- **กรองตาราง**: เลือกหรือยกเว้นตารางที่ต้องการ
+- **กำหนดเวลารัน**: รันอัตโนมัติตามช่วงเวลาที่กำหนด (วัน/ชั่วโมง/นาที)
+- **ปรับแต่งประสิทธิภาพ**: ปรับจำนวน workers, ขนาด batch และ timeout ได้
 
-## 🏗️ Architecture
+## 🏗️ สถาปัตยกรรม
 
 ```
 ┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
 │  Source MySQL   │────▶│   ETL Pipeline       │────▶│  Dest MySQL     │
-│  (Read-only)    │     │  ┌────────────────┐  │     │  (Dynamic DB)   │
+│  (อ่านอย่างเดียว)│     │  ┌────────────────┐  │     │  (สร้างอัตโนมัติ)│
 │                 │     │  │ 10 Producers   │  │     │                 │
-│  Tables: 54     │     │  │ (Extract)      │  │     │  Auto-created   │
-│  Rows: Millions │     │  └────────┬───────┘  │     │  per run        │
+│  ตาราง: 54      │     │  │ (ดึงข้อมูล)    │  │     │  สร้างใหม่       │
+│  แถว: หลายล้าน   │     │  └────────┬───────┘  │     │  ทุกครั้งที่รัน  │
 └─────────────────┘     │           │          │     └─────────────────┘
                         │           ▼          │
                         │  ┌────────────────┐  │
@@ -54,7 +54,7 @@ A high-performance, production-ready ETL (Extract, Transform, Load) pipeline for
                         │           ▼          │
                         │  ┌────────────────┐  │
                         │  │ 10 Consumers   │  │
-                        │  │ (Load)         │  │
+                        │  │ (โหลดข้อมูล)   │  │
                         │  └────────────────┘  │
                         └──────────┬───────────┘
                                    │
@@ -69,381 +69,382 @@ A high-performance, production-ready ETL (Extract, Transform, Load) pipeline for
                         └──────────────────────┘
 ```
 
-### Components
-- **Producers**: Extract data in parallel batches from source database
-- **Consumers**: Transform and load data to destination database
-- **Monitor**: Flask + Socket.IO server for real-time dashboard
-- **Cache**: Optional Redis-based caching for table schemas and metadata
+### ส่วนประกอบ
+- **Producers**: ดึงข้อมูลแบบขนานจากฐานข้อมูลต้นทาง
+- **Consumers**: แปลงและโหลดข้อมูลไปยังฐานข้อมูลปลายทาง
+- **Monitor**: เซิร์ฟเวอร์ Flask + Socket.IO สำหรับ Dashboard แบบ Real-time
+- **Cache**: แคชข้อมูล schema และ metadata ด้วย Redis (ตัวเลือก)
 
-## 🐳 Quick Start
+## 🐳 เริ่มต้นใช้งาน
 
-### Prerequisites
+### ความต้องการ
 - Docker & Docker Compose
-- Source MySQL/MariaDB database (accessible from Docker)
+- ฐานข้อมูล MySQL/MariaDB ต้นทาง (เข้าถึงได้จาก Docker)
 
-### Installation
+### การติดตั้ง
 
-1. **Clone the repository**
+1. **Clone repository**
 ```bash
 git clone <your-repo-url>
 cd med
 ```
 
-2. **Configure environment**
+2. **ตั้งค่า environment**
 ```bash
-# Copy example configuration
+# คัดลอกไฟล์ตัวอย่าง
 cp .env.example .env
 
-# Edit .env with your database credentials
+# แก้ไขไฟล์ .env ใส่ข้อมูลฐานข้อมูลของคุณ
 nano .env
 ```
 
-3. **Start services**
+3. **เริ่มต้นใช้งาน**
 ```bash
 docker-compose up -d
 ```
 
-4. **Access dashboard**
+4. **เข้าถึง Dashboard**
 ```
 http://localhost:5000
 ```
 
-5. **Monitor logs**
+5. **ดู logs**
 ```bash
 docker-compose logs -f etl
 ```
 
-## 📝 Configuration
+## 📝 การตั้งค่า
 
-### Environment Variables
+### ตัวแปร Environment
 
-| Variable | Description | Example | Default |
+| ตัวแปร | คำอธิบาย | ตัวอย่าง | ค่าเริ่มต้น |
 |----------|-------------|---------|---------|
-| **Source Database** |
-| `SRC_DB_HOST` | Source database host | `your-host` | `localhost` |
-| `SRC_DB_PORT` | Source database port | `3306` | `3306` |
-| `SRC_DB_NAME` | Source database name | `source_db` | `test` |
-| `SRC_DB_USER` | Source database user | `username` | `root` |
-| `SRC_DB_PASSWORD` | Source database password | `password` | - |
-| **Destination Database** |
-| `DST_DB_HOST` | Destination host | `host.docker.internal` | `localhost` |
-| `DST_DB_PORT` | Destination port | `3306` | `3306` |
-| `DST_DB_NAME` | Database name (supports placeholders) | `backup_{YYYY}_{MM}_{DD}` | `test` |
-| `DST_DB_DYNAMIC` | Enable dynamic database creation | `true` / `false` | `false` |
-| `DST_DB_USER` | Destination user | `username` | `root` |
-| `DST_DB_PASSWORD` | Destination password | `password` | - |
-| **Table Filtering** |
-| `INCLUDE_TABLES` | Tables to include (comma-separated) | `tbl_user,tbl_order` | (all) |
-| `EXCLUDE_TABLES` | Tables to exclude (comma-separated) | `temp_*,test_*` | (none) |
-| **ETL Configuration** |
-| `LOG_LEVEL` | Logging level | `DEBUG`/`INFO`/`WARNING`/`ERROR` | `INFO` |
-| `MAX_WORKERS` | Total workers (producers + consumers) | `20` | `20` |
-| `BATCH_SIZE` | Rows per batch | `5000` | `5000` |
-| **Performance Tuning** |
-| `MAX_TABLE_TIME_SECONDS` | Max time per table (0=unlimited) | `0` | `0` |
-| `MIN_BATCH_SIZE` | Minimum batch size | `5000` | `5000` |
-| `MAX_BATCH_SIZE` | Maximum batch size | `10000` | `10000` |
-| **Scheduling** |
-| `ETL_INTERVAL_SECONDS` | Auto-run interval (0=run once) | `300` | `300` |
+| **ฐานข้อมูลต้นทาง** |
+| `SRC_DB_HOST` | โฮสต์ฐานข้อมูลต้นทาง | `your-host` | `localhost` |
+| `SRC_DB_PORT` | พอร์ตฐานข้อมูลต้นทาง | `3306` | `3306` |
+| `SRC_DB_NAME` | ชื่อฐานข้อมูลต้นทาง | `source_db` | `test` |
+| `SRC_DB_USER` | ผู้ใช้ฐานข้อมูลต้นทาง | `username` | `root` |
+| `SRC_DB_PASSWORD` | รหัสผ่านฐานข้อมูลต้นทาง | `password` | - |
+| **ฐานข้อมูลปลายทาง** |
+| `DST_DB_HOST` | โฮสต์ปลายทาง | `host.docker.internal` | `localhost` |
+| `DST_DB_PORT` | พอร์ตปลายทาง | `3306` | `3306` |
+| `DST_DB_NAME` | ชื่อฐานข้อมูล (รองรับ placeholders) | `backup_{YYYY}_{MM}_{DD}` | `test` |
+| `DST_DB_DYNAMIC` | เปิดใช้งานการสร้างฐานข้อมูลแบบไดนามิก | `true` / `false` | `false` |
+| `DST_DB_USER` | ผู้ใช้ปลายทาง | `username` | `root` |
+| `DST_DB_PASSWORD` | รหัสผ่านปลายทาง | `password` | - |
+| **การกรองตาราง** |
+| `INCLUDE_TABLES` | ตารางที่ต้องการ (คั่นด้วยคอมม่า) | `tbl_user,tbl_order` | (ทั้งหมด) |
+| `EXCLUDE_TABLES` | ตารางที่ไม่ต้องการ (คั่นด้วยคอมม่า) | `temp_*,test_*` | (ไม่มี) |
+| **การตั้งค่า ETL** |
+| `LOG_LEVEL` | ระดับการบันทึก log | `DEBUG`/`INFO`/`WARNING`/`ERROR` | `INFO` |
+| `MAX_WORKERS` | จำนวน workers ทั้งหมด (producers + consumers) | `20` | `20` |
+| `BATCH_SIZE` | จำนวนแถวต่อ batch | `5000` | `5000` |
+| **การปรับแต่งประสิทธิภาพ** |
+| `MAX_TABLE_TIME_SECONDS` | เวลาสูงสุดต่อตาราง (0=ไม่จำกัด) | `0` | `0` |
+| `MIN_BATCH_SIZE` | ขนาด batch ขั้นต่ำ | `5000` | `5000` |
+| `MAX_BATCH_SIZE` | ขนาด batch สูงสุด | `10000` | `10000` |
+| **การกำหนดเวลา** |
+| `ETL_INTERVAL_SECONDS` | ช่วงเวลารันอัตโนมัติ (0=รันครั้งเดียว) | `300` | `300` |
 
-### Dynamic Database Naming
+### การตั้งชื่อฐานข้อมูลแบบไดนามิก
 
-Use placeholders in `DST_DB_NAME` to create time-based databases:
+ใช้ placeholders ใน `DST_DB_NAME` เพื่อสร้างฐานข้อมูลตามเวลา:
 
-| Placeholder | Description | Example |
+| Placeholder | คำอธิบาย | ตัวอย่าง |
 |-------------|-------------|---------|
-| `{YYYY}` | 4-digit year | `2025` |
-| `{MM}` | 2-digit month | `11` |
-| `{DD}` | 2-digit day | `08` |
-| `{HH}` | 2-digit hour (24h) | `14` |
-| `{mm}` | 2-digit minute | `30` |
-| `{ss}` | 2-digit second | `45` |
+| `{YYYY}` | ปี 4 หลัก | `2025` |
+| `{MM}` | เดือน 2 หลัก | `11` |
+| `{DD}` | วัน 2 หลัก | `08` |
+| `{HH}` | ชั่วโมง 2 หลัก (24 ชม.) | `14` |
+| `{mm}` | นาที 2 หลัก | `30` |
+| `{ss}` | วินาที 2 หลัก | `45` |
 
-**Examples:**
+**ตัวอย่าง:**
 ```env
-# Daily backups
+# สำรองข้อมูลรายวัน
 DST_DB_NAME=backup_{YYYY}_{MM}_{DD}
-# Result: backup_2025_11_08
+# ผลลัพธ์: backup_2025_11_08
 
-# Hourly snapshots
+# Snapshot รายชั่วโมง
 DST_DB_NAME=snapshot_{YYYY}{MM}{DD}_{HH}00
-# Result: snapshot_20251108_1400
+# ผลลัพธ์: snapshot_20251108_1400
 
-# Thai format
+# รูปแบบไทย
 DST_DB_NAME=medkku.{YYYY}.{MM}.{DD}
-# Result: medkku.2025.11.08
+# ผลลัพธ์: medkku.2025.11.08
 ```
 
-### Dashboard Settings
+### การตั้งค่าผ่าน Dashboard
 
-All settings can be configured via the web dashboard at `http://localhost:5000`:
+ตั้งค่าทั้งหมดได้ผ่าน Dashboard ที่ `http://localhost:5000`:
 
 1. **⚙️ Settings Modal**
-   - Edit all `.env` variables
-   - Source/Destination database credentials
-   - Table filtering patterns
-   - Performance tuning parameters
-   - Scheduling intervals (Days/Hours/Minutes)
+   - แก้ไขตัวแปร `.env` ทั้งหมด
+   - ข้อมูลฐานข้อมูลต้นทาง/ปลายทาง
+   - รูปแบบการกรองตาราง
+   - พารามิเตอร์ปรับแต่งประสิทธิภาพ
+   - ช่วงเวลารัน (วัน/ชั่วโมง/นาที)
 
-2. **📊 Workers Progress** (Auto-updates every 5s)
-   - Active producers per table
-   - Active consumers per table
-   - Rows processed
-   - Current status
+2. **📊 Workers Progress** (อัปเดตทุก 5 วินาที)
+   - Producers ที่ทำงานอยู่ของแต่ละตาราง
+   - Consumers ที่ทำงานอยู่ของแต่ละตาราง
+   - จำนวนแถวที่ประมวลผล
+   - สถานะปัจจุบัน
 
 3. **📈 System Stats**
-   - CPU usage
-   - Memory usage
-   - Disk usage
+   - การใช้งาน CPU
+   - การใช้งานหน่วยความจำ
+   - การใช้งานดิสก์
 
 4. **📋 Live Logs**
-   - Real-time log streaming
-   - Severity filtering
-   - Auto-scroll
+   - ดู log แบบ Real-time
+   - กรองตามระดับความสำคัญ
+   - เลื่อนอัตโนมัติ
 
-## 🎯 Use Cases
+## 🎯 กรณีการใช้งาน
 
-### 1. Daily Database Backups
+### 1. สำรองข้อมูลรายวัน
 ```env
 DST_DB_NAME=backup_{YYYY}_{MM}_{DD}
 DST_DB_DYNAMIC=true
-ETL_INTERVAL_SECONDS=86400  # 24 hours
+ETL_INTERVAL_SECONDS=86400  # 24 ชั่วโมง
 ```
 
-### 2. Hourly Data Snapshots
+### 2. Snapshot ข้อมูลรายชั่วโมง
 ```env
 DST_DB_NAME=snapshot_{YYYY}{MM}{DD}_{HH}00
 DST_DB_DYNAMIC=true
-ETL_INTERVAL_SECONDS=3600  # 1 hour
+ETL_INTERVAL_SECONDS=3600  # 1 ชั่วโมง
 ```
 
-### 3. One-time Migration
+### 3. ย้ายข้อมูลครั้งเดียว
 ```env
 DST_DB_NAME=production_db
 DST_DB_DYNAMIC=false
-ETL_INTERVAL_SECONDS=0  # Run once
+ETL_INTERVAL_SECONDS=0  # รันครั้งเดียว
 ```
 
-### 4. Selective Table Migration
+### 4. ย้ายเฉพาะตารางที่เลือก
 ```env
 INCLUDE_TABLES=tbl_user,tbl_order,tbl_product
 EXCLUDE_TABLES=
 ```
 
-### 5. Exclude Temporary Tables
+### 5. ยกเว้นตารางชั่วคราว
 ```env
 INCLUDE_TABLES=
 EXCLUDE_TABLES=temp_,test_,backup_
 ```
 
-## 📊 Performance
+## 📊 ประสิทธิภาพ
 
-### Throughput
-- **Small tables** (<10K rows): ~100K rows/second
-- **Medium tables** (10K-100K): ~200K rows/second
-- **Large tables** (>1M rows): ~300K-500K rows/second
+### ความเร็วในการประมวลผล
+- **ตารางเล็ก** (<10K แถว): ~100K แถว/วินาที
+- **ตารางกลาง** (10K-100K): ~200K แถว/วินาที
+- **ตารางใหญ่** (>1M แถว): ~300K-500K แถว/วินาที
 
-*Performance depends on hardware, network, and database configuration*
+*ประสิทธิภาพขึ้นอยู่กับฮาร์ดแวร์ เครือข่าย และการตั้งค่าฐานข้อมูล*
 
-### Optimization Tips
+### เคล็ดลับการปรับแต่ง
 
-| Table Size | Workers | Batch Size | Strategy |
+| ขนาดตาราง | Workers | Batch Size | กลยุทธ์ |
 |------------|---------|------------|----------|
-| < 10K rows | 2-3 | 1,000 | Minimal overhead |
-| 10K-100K | 5 | 5,000 | Balanced |
-| 100K-1M | 8 | 5,000 | Moderate parallel |
-| > 1M rows | 10 | 5,000 | High parallel |
+| < 10K แถว | 2-3 | 1,000 | ลด overhead |
+| 10K-100K | 5 | 5,000 | สมดุล |
+| 100K-1M | 8 | 5,000 | ขนานปานกลาง |
+| > 1M แถว | 10 | 5,000 | ขนานสูง |
 
-**Conservative Mode (Recommended for Stability):**
+**โหมดอนุรักษ์นิยม (แนะนำเพื่อความเสถียร):**
 ```env
 MAX_WORKERS=20
 BATCH_SIZE=5000
-MAX_TABLE_TIME_SECONDS=0  # No time limit
+MAX_TABLE_TIME_SECONDS=0  # ไม่จำกัดเวลา
 ```
 
-**Aggressive Mode (Maximum Speed):**
+**โหมดเร็วสูงสุด:**
 ```env
 MAX_WORKERS=50
 BATCH_SIZE=10000
-MAX_TABLE_TIME_SECONDS=3600  # 1 hour limit
+MAX_TABLE_TIME_SECONDS=3600  # จำกัด 1 ชั่วโมง
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ เทคโนโลยีที่ใช้
 
 - **Backend**: Python 3.11, asyncio, aiomysql
 - **Web Server**: Flask, Flask-SocketIO
 - **Frontend**: Vanilla JavaScript, Socket.IO client
 - **Database**: MySQL 8.0 / MariaDB 11.8
-- **Cache**: Redis (optional)
+- **Cache**: Redis (ตัวเลือก)
 - **Containerization**: Docker, Docker Compose
 
-## 📦 Project Structure
+## 📦 โครงสร้างโปรเจค
 
 ```
 med/
 ├── etl/
 │   ├── app/
-│   │   ├── main.py                  # ETL pipeline core
+│   │   ├── main.py                  # ETL pipeline หลัก
 │   │   ├── monitor.py               # Dashboard server (Flask + Socket.IO)
-│   │   ├── cache_storage.py         # Redis caching layer
+│   │   ├── cache_storage.py         # ชั้น Redis caching
 │   │   ├── templates/
 │   │   │   └── dashboard.html       # Dashboard UI
 │   │   └── static/
-│   │       └── dashboard_socket.js  # Real-time WebSocket client
+│   │       └── dashboard_socket.js  # WebSocket client แบบ Real-time
 │   └── Dockerfile
-├── docker-compose.yml               # Docker services configuration
-├── .env                             # Environment variables
+├── docker-compose.yml               # การตั้งค่า Docker services
+├── .env                             # ตัวแปร Environment
+├── .env.example                     # ตัวอย่างการตั้งค่า
 ├── requirements.txt                 # Python dependencies
 └── README.md
 ```
 
-## 🔍 Monitoring & Debugging
+## 🔍 การติดตามและแก้ไขปัญหา
 
-### Dashboard Features
+### ฟีเจอร์ Dashboard
 
-1. **Status Overview**
-   - Current status: Running/Idle/Completed/Failed
-   - Elapsed time
-   - Tables: Total/Completed/Failed
-   - Current table being processed
+1. **ภาพรวมสถานะ**
+   - สถานะปัจจุบัน: กำลังทำงาน/รอ/เสร็จสิ้น/ล้มเหลว
+   - เวลาที่ใช้
+   - ตาราง: ทั้งหมด/เสร็จสิ้น/ล้มเหลว
+   - ตารางที่กำลังประมวลผล
 
-2. **Table Progress**
-   - Visual progress bars
-   - Row counts (processed/total)
-   - Completion percentage
-   - ETA (estimated time)
+2. **ความคืบหน้าตาราง**
+   - Progress bars แบบ visual
+   - จำนวนแถว (ประมวลผล/ทั้งหมด)
+   - เปอร์เซ็นต์ที่เสร็จ
+   - เวลาโดยประมาณ (ETA)
 
 3. **Workers Modal**
-   - Real-time worker status
-   - Producers: Active/Total
-   - Consumers: Active/Total
-   - Rows processed per worker
-   - Auto-updates every 5 seconds
+   - สถานะ worker แบบ Real-time
+   - Producers: ทำงาน/ทั้งหมด
+   - Consumers: ทำงาน/ทั้งหมด
+   - แถวที่ประมวลผลต่อ worker
+   - อัปเดตอัตโนมัติทุก 5 วินาที
 
-4. **System Resources**
-   - CPU usage (%)
-   - Memory usage (MB)
-   - Disk usage (GB)
+4. **ทรัพยากรระบบ**
+   - การใช้งาน CPU (%)
+   - การใช้งานหน่วยความจำ (MB)
+   - การใช้งานดิสก์ (GB)
 
 5. **Live Logs**
-   - Real-time log streaming
-   - Severity levels: DEBUG/INFO/WARNING/ERROR
-   - Auto-scroll to latest
-   - Filterable
+   - ดู log แบบ Real-time
+   - ระดับความสำคัญ: DEBUG/INFO/WARNING/ERROR
+   - เลื่อนอัตโนมัติไปที่ล่าสุด
+   - กรองได้
 
 ### Socket.IO Events
 
-All dashboard data is streamed via WebSocket:
+ข้อมูล Dashboard ทั้งหมดส่งผ่าน WebSocket:
 
-| Client → Server | Server → Client | Description |
+| Client → Server | Server → Client | คำอธิบาย |
 |-----------------|-----------------|-------------|
-| `connect` | `initial_state` | Initial connection |
-| `request_status` | `status_update` | ETL status update |
-| `request_tables` | `tables_update` | Table progress |
-| `request_logs` | `logs_update` | Log entries |
-| `request_config` | `config_update` | Configuration |
-| `save_config` | `config_saved` | Save result |
+| `connect` | `initial_state` | เชื่อมต่อครั้งแรก |
+| `request_status` | `status_update` | อัปเดตสถานะ ETL |
+| `request_tables` | `tables_update` | ความคืบหน้าตาราง |
+| `request_logs` | `logs_update` | รายการ log |
+| `request_config` | `config_update` | การตั้งค่า |
+| `save_config` | `config_saved` | ผลการบันทึก |
 
-### Docker Commands
+### คำสั่ง Docker
 
 ```bash
-# Start services
+# เริ่มต้น services
 docker-compose up -d
 
-# View logs
+# ดู logs
 docker-compose logs -f etl
 
-# Restart ETL
+# รีสตาร์ท ETL
 docker-compose restart etl
 
-# Stop services
+# หยุด services
 docker-compose down
 
-# Rebuild after code changes
+# สร้างใหม่หลังแก้ไขโค้ด
 docker-compose up -d --build
 ```
 
-## 🔒 Security
+## 🔒 ความปลอดภัย
 
-- **Credentials**: Stored in `.env` file (excluded from git)
-- **Docker Isolation**: Services run in isolated containers
-- **Read-only Source**: Source database accessed in read-only mode
-- **Connection Limits**: Configurable pool sizes prevent resource exhaustion
-- **Password Fields**: Hidden in dashboard UI
+- **ข้อมูลรับรอง**: เก็บในไฟล์ `.env` (ไม่อัปโหลด git)
+- **Docker Isolation**: Services ทำงานใน container แยก
+- **Read-only Source**: เข้าถึงฐานข้อมูลต้นทางแบบอ่านอย่างเดียว
+- **Connection Limits**: จำกัดขนาด pool ป้องกันการใช้ทรัพยากรมากเกินไป
+- **ฟิลด์รหัสผ่าน**: ซ่อนใน Dashboard UI
 
-## 🐛 Troubleshooting
+## 🐛 แก้ไขปัญหา
 
-### Common Issues
+### ปัญหาที่พบบ่อย
 
-**1. Database Connection Failed**
+**1. เชื่อมต่อฐานข้อมูลไม่ได้**
 ```bash
-# Check if source database is accessible
+# ตรวจสอบว่าเข้าถึงฐานข้อมูลต้นทางได้หรือไม่
 docker exec -it mariadb-etl ping <SRC_DB_HOST>
 
-# Verify credentials
+# ตรวจสอบข้อมูลรับรอง
 docker exec -it mariadb-etl mysql -h <SRC_DB_HOST> -u <SRC_DB_USER> -p
 ```
 
-**2. Dynamic Database Not Created**
+**2. ฐานข้อมูลแบบไดนามิกไม่ถูกสร้าง**
 ```bash
-# Check if DST_DB_DYNAMIC is enabled
+# ตรวจสอบว่าเปิด DST_DB_DYNAMIC หรือไม่
 grep DST_DB_DYNAMIC .env
 
-# Verify destination database permissions
-# User must have CREATE DATABASE privilege
+# ตรวจสอบสิทธิ์ฐานข้อมูลปลายทาง
+# ผู้ใช้ต้องมีสิทธิ์ CREATE DATABASE
 ```
 
-**3. Workers Not Showing in Dashboard**
+**3. Workers ไม่แสดงใน Dashboard**
 ```bash
-# Check if ETL is running
+# ตรวจสอบว่า ETL กำลังทำงานหรือไม่
 docker-compose logs etl | grep "Starting Parallel ETL"
 
-# Verify Socket.IO connection
-# Open browser console (F12) and check for WebSocket errors
+# ตรวจสอบการเชื่อมต่อ Socket.IO
+# เปิด browser console (F12) และตรวจสอบ WebSocket errors
 ```
 
-**4. Slow Performance**
+**4. ประสิทธิภาพช้า**
 ```bash
-# Reduce batch size
+# ลดขนาด batch
 BATCH_SIZE=1000
 
-# Reduce workers
+# ลดจำนวน workers
 MAX_WORKERS=10
 
-# Check network latency
+# ตรวจสอบ network latency
 docker exec -it mariadb-etl ping <SRC_DB_HOST>
 ```
 
-## 🤝 Contributing
+## 🤝 การมีส่วนร่วม
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+ยินดีรับการมีส่วนร่วม! สามารถส่ง Pull Request ได้เลย
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork repository
+2. สร้าง feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit การเปลี่ยนแปลง (`git commit -m 'Add some AmazingFeature'`)
+4. Push ไปยัง branch (`git push origin feature/AmazingFeature`)
+5. เปิด Pull Request
 
-## 📄 License
+## 📄 ใบอนุญาต
 
-MIT License - feel free to use this project for personal or commercial purposes.
+MIT License - ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์
 
-## 🙏 Acknowledgments
+## 🙏 กิตติกรรมประกาศ
 
-- Built with Python asyncio for high-performance async I/O
-- Inspired by AWS Glue ETL architecture
-- Real-time dashboard powered by Socket.IO
-- Connection pooling with aiomysql
+- สร้างด้วย Python asyncio เพื่อประสิทธิภาพ async I/O สูง
+- แรงบันดาลใจจากสถาปัตยกรรม AWS Glue ETL
+- Dashboard แบบ Real-time ขับเคลื่อนด้วย Socket.IO
+- Connection pooling ด้วย aiomysql
 
-## 📞 Support
+## 📞 การสนับสนุน
 
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Check the troubleshooting section
-- Review Docker logs: `docker-compose logs -f etl`
+สำหรับปัญหา คำถาม หรือข้อเสนอแนะ:
+- เปิด issue บน GitHub
+- ตรวจสอบส่วนแก้ไขปัญหา
+- ดู Docker logs: `docker-compose logs -f etl`
 
 ---
 
-**⭐ Star this repo if you find it useful!**
+**⭐ กด Star repo นี้ถ้าคุณชอบ!**
 
-Made with ❤️ for efficient database migrations and backups
+สร้างด้วย ❤️ เพื่อการย้ายข้อมูลและสำรองข้อมูลที่มีประสิทธิภาพ
