@@ -402,8 +402,8 @@ def get_env(key: str, default: str = "") -> str:
 
 
 # REDCap Configuration (from environment variables)
-REDCAP_API_URL = get_env('REDCAP_API_URL', 'https://md.redcap.kku.ac.th/api/')
-REDCAP_API_TOKEN = get_env('REDCAP_API_TOKEN', 'E80436D60A2CC3887C6A62548EF4BCC4')
+REDCAP_API_URL = get_env('REDCAP_API_URL', '')
+REDCAP_API_TOKEN = get_env('REDCAP_API_TOKEN', '')
 
 
 def get_redcap_data() -> tuple:
