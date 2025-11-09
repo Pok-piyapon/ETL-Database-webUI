@@ -560,9 +560,9 @@ async def load_redcap_to_database(table_name: str = "redcap_data"):
             return False
         
         # 2. Get destination database connection
-        dst_host = get_env('DST_DB_HOST', 'localhost')
-        dst_port = int(get_env('DST_DB_PORT', '3306'))
-        dst_user = get_env('DST_DB_USER', 'root')
+        dst_host = get_env('DST_DB_HOST', '')
+        dst_port = int(get_env('DST_DB_PORT', ''))
+        dst_user = get_env('DST_DB_USER', '')
         dst_password = get_env('DST_DB_PASSWORD', '')
         
         # Check if dynamic mode is enabled
