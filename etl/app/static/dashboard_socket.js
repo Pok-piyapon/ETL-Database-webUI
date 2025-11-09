@@ -358,7 +358,7 @@ socket.on('config_update', (config) => {
     
     // REDCap Integration
     document.getElementById('redcapEnabled').checked = config.redcap_enabled === 'true' || config.redcap_enabled === true;
-    document.getElementById('redcapApiUrl').value = config.redcap_api_url || 'https://md.redcap.kku.ac.th/api/';
+    document.getElementById('redcapApiUrl').value = config.redcap_api_url || 'https://your-redcap-server.com/api/';
     document.getElementById('redcapApiToken').value = config.redcap_api_token || '';
     document.getElementById('redcapTableName').value = config.redcap_table_name || 'redcap_data';
     
