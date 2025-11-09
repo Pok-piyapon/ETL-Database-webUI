@@ -319,7 +319,23 @@ socket.on('config_update', (config) => {
     // Source Database
     document.getElementById('srcDbHost').value = config.src_db_host || '';
     document.getElementById('srcDbPort').value = config.src_db_port || 3306;
-    document.getElementById('srcDbName').value = config.src_db_name || '';
+    
+    // Check if using LATEST: pattern
+    const srcDbName = config.src_db_name || '';
+    if (srcDbName.startsWith('LATEST:')) {
+        // Auto mode
+        document.getElementById('srcDbNameMode').value = 'auto';
+        document.getElementById('srcDbNameAuto').value = srcDbName.replace('LATEST:', '').trim();
+        document.getElementById('srcDbNameManualGroup').style.display = 'none';
+        document.getElementById('srcDbNameAutoGroup').style.display = 'block';
+    } else {
+        // Manual mode
+        document.getElementById('srcDbNameMode').value = 'manual';
+        document.getElementById('srcDbNameManual').value = srcDbName;
+        document.getElementById('srcDbNameManualGroup').style.display = 'block';
+        document.getElementById('srcDbNameAutoGroup').style.display = 'none';
+    }
+    
     document.getElementById('srcDbUser').value = config.src_db_user || '';
     document.getElementById('srcDbPassword').value = config.src_db_password || '';
     
@@ -340,6 +356,12 @@ socket.on('config_update', (config) => {
     document.getElementById('maxWorkersInput').value = config.max_workers || 20;
     document.getElementById('batchSizeInput').value = config.batch_size || 5000;
     
+    // REDCap Integration
+    document.getElementById('redcapEnabled').checked = config.redcap_enabled === 'true' || config.redcap_enabled === true;
+    document.getElementById('redcapApiUrl').value = config.redcap_api_url || 'https://md.redcap.kku.ac.th/api/';
+    document.getElementById('redcapApiToken').value = config.redcap_api_token || '';
+    document.getElementById('redcapTableName').value = config.redcap_table_name || 'redcap_data';
+    
     // Dynamic Performance Tuning
     document.getElementById('maxTableTime').value = config.max_table_time_seconds || 0;
     document.getElementById('minBatchSize').value = config.min_batch_size || 5000;
@@ -357,12 +379,33 @@ socket.on('config_update', (config) => {
 });
 
 function saveSettings() {
+    // Build SRC_DB_NAME based on mode
+    const srcDbNameMode = document.getElementById('srcDbNameMode').value;
+    let srcDbName = '';
+    
+    if (srcDbNameMode === 'auto') {
+        // Auto mode - prepend LATEST:
+        const pattern = document.getElementById('srcDbNameAuto').value.trim();
+        if (!pattern) {
+            alert('กรุณาระบุ pattern สำหรับหา database ล่าสุด (เช่น smartmedkku_*)');
+            return;
+        }
+        srcDbName = `LATEST:${pattern}`;
+    } else {
+        // Manual mode - use as-is
+        srcDbName = document.getElementById('srcDbNameManual').value.trim();
+        if (!srcDbName) {
+            alert('กรุณาระบุชื่อ database');
+            return;
+        }
+    }
+    
     // Collect all settings
     const config = {
         // Source Database
         src_db_host: document.getElementById('srcDbHost').value,
         src_db_port: parseInt(document.getElementById('srcDbPort').value),
-        src_db_name: document.getElementById('srcDbName').value,
+        src_db_name: srcDbName,
         src_db_user: document.getElementById('srcDbUser').value,
         src_db_password: document.getElementById('srcDbPassword').value,
         
@@ -382,6 +425,12 @@ function saveSettings() {
         log_level: document.getElementById('logLevel').value,
         max_workers: parseInt(document.getElementById('maxWorkersInput').value),
         batch_size: parseInt(document.getElementById('batchSizeInput').value),
+        
+        // REDCap Integration
+        redcap_enabled: document.getElementById('redcapEnabled').checked ? 'true' : 'false',
+        redcap_api_url: document.getElementById('redcapApiUrl').value,
+        redcap_api_token: document.getElementById('redcapApiToken').value,
+        redcap_table_name: document.getElementById('redcapTableName').value,
         
         // Dynamic Performance Tuning
         max_table_time_seconds: parseInt(document.getElementById('maxTableTime').value),

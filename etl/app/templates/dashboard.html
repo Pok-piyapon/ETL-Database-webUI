@@ -731,8 +731,25 @@
                     <input type="number" id="srcDbPort" value="3306">
                 </div>
                 <div class="form-group">
-                    <label>SRC_DB_NAME</label>
-                    <input type="text" id="srcDbName" placeholder="database_name">
+                    <label>SRC_DB_NAME Mode</label>
+                    <select id="srcDbNameMode" style="width: 100%; padding: 8px; border: 1px solid #ddd; font-family: monospace;" onchange="toggleSrcDbNameMode()">
+                        <option value="manual">ระบุชื่อ Database ชัดเจน</option>
+                        <option value="auto">หา Database ล่าสุดอัตโนมัติ (LATEST:)</option>
+                    </select>
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        Auto mode จะค้นหา database ล่าสุดที่ตรงกับ pattern
+                    </div>
+                </div>
+                <div class="form-group" id="srcDbNameManualGroup">
+                    <label>SRC_DB_NAME (ชื่อชัดเจน)</label>
+                    <input type="text" id="srcDbNameManual" placeholder="smartmedkku_2025.10.11">
+                </div>
+                <div class="form-group" id="srcDbNameAutoGroup" style="display: none;">
+                    <label>SRC_DB_NAME Pattern (ใช้ * wildcard)</label>
+                    <input type="text" id="srcDbNameAuto" placeholder="smartmedkku_*">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        ตัวอย่าง: smartmedkku_* หรือ backup_* หรือ medkku.*
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>SRC_DB_USER</label>
@@ -818,6 +835,36 @@
                     </div>
                 </div>
 
+                <!-- REDCap Integration -->
+                <h3 style="font-size: 13px; margin: 20px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">REDCap Integration</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="redcapEnabled" style="width: auto; margin-right: 5px;">
+                        Enable REDCap Data Loader
+                    </label>
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        Load data from REDCap API before ETL starts
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>REDCAP_API_URL</label>
+                    <input type="text" id="redcapApiUrl" placeholder="https://redcap-server.com/api/">
+                </div>
+                <div class="form-group">
+                    <label>REDCAP_API_TOKEN</label>
+                    <input type="password" id="redcapApiToken" placeholder="Your API Token">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        🔒 Keep your API token secure
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>REDCAP_TABLE_NAME</label>
+                    <input type="text" id="redcapTableName" placeholder="redcap_data">
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                        Table name for REDCap data (stored as JSON)
+                    </div>
+                </div>
+
                 <!-- Dynamic Performance Tuning -->
                 <h3 style="font-size: 13px; margin: 20px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Dynamic Performance Tuning</h3>
                 <div class="form-group">
@@ -870,6 +917,21 @@
     <script src="{{ url_for('static', filename='dashboard_socket.js') }}"></script>
     
     <script>
+        // Toggle between manual and auto database name modes
+        function toggleSrcDbNameMode() {
+            const mode = document.getElementById('srcDbNameMode').value;
+            const manualGroup = document.getElementById('srcDbNameManualGroup');
+            const autoGroup = document.getElementById('srcDbNameAutoGroup');
+            
+            if (mode === 'manual') {
+                manualGroup.style.display = 'block';
+                autoGroup.style.display = 'none';
+            } else {
+                manualGroup.style.display = 'none';
+                autoGroup.style.display = 'block';
+            }
+        }
+        
         // Minimal modal helper functions (moved to dashboard_socket.js)
         function closeWorkersModal() {
             document.getElementById('workersModal').style.display = 'none';

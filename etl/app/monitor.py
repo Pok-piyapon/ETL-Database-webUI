@@ -255,6 +255,14 @@ def handle_request_config():
                             config['max_batch_size'] = int(value)
                         elif key == 'ETL_INTERVAL_SECONDS':
                             config['etl_interval_seconds'] = int(value)
+                        elif key == 'REDCAP_ENABLED':
+                            config['redcap_enabled'] = value
+                        elif key == 'REDCAP_API_URL':
+                            config['redcap_api_url'] = value
+                        elif key == 'REDCAP_API_TOKEN':
+                            config['redcap_api_token'] = value
+                        elif key == 'REDCAP_TABLE_NAME':
+                            config['redcap_table_name'] = value
     except Exception as e:
         print(f"Error reading config: {e}")
     
@@ -320,6 +328,14 @@ def handle_save_config(data):
                     lines[i] = f'MAX_BATCH_SIZE={data["max_batch_size"]}        # Smaller max for stability\n'
                 elif key == 'ETL_INTERVAL_SECONDS' and 'etl_interval_seconds' in data:
                     lines[i] = f'ETL_INTERVAL_SECONDS={data["etl_interval_seconds"]}\n'
+                elif key == 'REDCAP_ENABLED' and 'redcap_enabled' in data:
+                    lines[i] = f'REDCAP_ENABLED={data["redcap_enabled"]}\n'
+                elif key == 'REDCAP_API_URL' and 'redcap_api_url' in data:
+                    lines[i] = f'REDCAP_API_URL={data["redcap_api_url"]}\n'
+                elif key == 'REDCAP_API_TOKEN' and 'redcap_api_token' in data:
+                    lines[i] = f'REDCAP_API_TOKEN={data["redcap_api_token"]}\n'
+                elif key == 'REDCAP_TABLE_NAME' and 'redcap_table_name' in data:
+                    lines[i] = f'REDCAP_TABLE_NAME={data["redcap_table_name"]}\n'
         
         # Write back to file
         with open(env_file, 'w') as f:

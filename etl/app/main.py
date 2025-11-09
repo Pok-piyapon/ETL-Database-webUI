@@ -232,13 +232,88 @@ async def close_db_pools():
     logger.info("✅ Database pools closed")
 
 
+def get_latest_database(host: str, port: int, user: str, password: str, pattern: str) -> str:
+    """
+    หา database ล่าสุดที่ตรงกับ pattern
+    
+    Args:
+        host: Database host
+        port: Database port
+        user: Database user
+        password: Database password
+        pattern: Pattern ของชื่อ database (เช่น smartmedkku_*)
+        
+    Returns:
+        ชื่อ database ล่าสุด
+    """
+    import mysql.connector
+    from fnmatch import fnmatch
+    
+    try:
+        # Connect without selecting database
+        conn = mysql.connector.connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            connect_timeout=10
+        )
+        cursor = conn.cursor()
+        
+        # Get all databases
+        cursor.execute("SHOW DATABASES")
+        all_dbs = [row[0] for row in cursor.fetchall()]
+        
+        # Filter by pattern
+        matching_dbs = [db for db in all_dbs if fnmatch(db, pattern)]
+        
+        cursor.close()
+        conn.close()
+        
+        if not matching_dbs:
+            raise ValueError(f"ไม่พบ database ที่ตรงกับ pattern: {pattern}")
+        
+        # Sort and get latest (assuming format with date/time)
+        latest_db = sorted(matching_dbs)[-1]
+        
+        logger.info(f"🔍 พบ database ล่าสุด: {latest_db} (จาก {len(matching_dbs)} databases)")
+        
+        return latest_db
+        
+    except Exception as e:
+        logger.error(f"❌ Error finding latest database: {e}")
+        raise
+
+
 def get_connection_params(prefix: str) -> Dict:
     """Get database connection parameters from .env"""
+    db_name = None
+    
     # Use dynamic database name for destination
     if prefix == "DST":
         db_name = get_dynamic_db_name()
     else:
-        db_name = get_env(f"{prefix}_DB_NAME")
+        # Check if using LATEST: pattern for source
+        raw_db_name = get_env(f"{prefix}_DB_NAME")
+        
+        if raw_db_name.startswith("LATEST:"):
+            # Extract pattern (e.g., "LATEST:smartmedkku_*" -> "smartmedkku_*")
+            pattern = raw_db_name.replace("LATEST:", "").strip()
+            
+            logger.info(f"🔍 ค้นหา database ล่าสุดที่ตรงกับ pattern: {pattern}")
+            
+            # Get connection info
+            host = get_env(f"{prefix}_DB_HOST")
+            port = int(get_env(f"{prefix}_DB_PORT", "3306"))
+            user = get_env(f"{prefix}_DB_USER")
+            password = get_env(f"{prefix}_DB_PASSWORD")
+            
+            # Find latest database
+            db_name = get_latest_database(host, port, user, password, pattern)
+            
+            logger.info(f"✅ ใช้ database: {db_name}")
+        else:
+            db_name = raw_db_name
     
     return {
         "host": get_env(f"{prefix}_DB_HOST"),
@@ -1011,6 +1086,20 @@ async def create_table_if_not_exists(table: str):
         # Get connection params (async)
         src_params = await loop.run_in_executor(None, get_connection_params, "SRC")
         dst_params = await loop.run_in_executor(None, get_connection_params, "DST")
+        
+        # Ensure destination database exists (for dynamic DB mode)
+        is_dynamic = get_env('DST_DB_DYNAMIC', 'false').lower() == 'true'
+        if is_dynamic:
+            def _ensure_database():
+                conn_params = dst_params.copy()
+                db_name = conn_params.pop('database')
+                conn = mysql.connector.connect(**conn_params)
+                cursor = conn.cursor()
+                cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                cursor.close()
+                conn.close()
+            
+            await loop.run_in_executor(None, _ensure_database)
         
         # Get column names from source (async)
         def _get_schema():
@@ -1825,6 +1914,26 @@ async def run_etl_all_tables():
         except Exception as e:
             logger.error(f"❌ Error creating database: {e}")
             raise
+    
+    # Load REDCap data before processing tables (if enabled)
+    redcap_enabled = get_env('REDCAP_ENABLED', 'false').lower() == 'true'
+    if redcap_enabled:
+        try:
+            from redcap_loader import load_redcap_to_database
+            redcap_table = get_env('REDCAP_TABLE_NAME', 'redcap_data')
+            logger.info(f"🔄 Loading REDCap data to table '{redcap_table}'...")
+            redcap_success = await load_redcap_to_database(table_name=redcap_table)
+            if redcap_success:
+                logger.info("✅ REDCap data loaded successfully")
+            else:
+                logger.warning("⚠️  REDCap data load skipped or failed")
+        except ImportError:
+            logger.warning("⚠️  REDCap loader not available (redcap_loader.py not found)")
+        except Exception as e:
+            logger.error(f"❌ Error loading REDCap data: {e}")
+            logger.warning("⚠️  Continuing with ETL despite REDCap error...")
+    else:
+        logger.info("ℹ️  REDCap integration disabled (REDCAP_ENABLED=false)")
     
     # Get tables
     all_tables = get_tables(src_params)

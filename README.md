@@ -91,40 +91,11 @@ cd med
 
 2. **Configure environment**
 ```bash
-# Create .env file
-cat > .env << EOF
-# Source Database
-SRC_DB_HOST=10.87.74.68
-SRC_DB_PORT=3306
-SRC_DB_NAME=smartmedkku_2025.10.11
-SRC_DB_USER=research01
-SRC_DB_PASSWORD=your_password
+# Copy example configuration
+cp .env.example .env
 
-# Destination Database
-DST_DB_HOST=host.docker.internal
-DST_DB_PORT=3306
-DST_DB_NAME=medkku_{YYYY}_{MM}_{DD}
-DST_DB_DYNAMIC=true
-DST_DB_USER=root
-DST_DB_PASSWORD=your_password
-
-# Table Filtering
-INCLUDE_TABLES=
-EXCLUDE_TABLES=
-
-# ETL Configuration
-LOG_LEVEL=INFO
-MAX_WORKERS=20
-BATCH_SIZE=5000
-
-# Performance Tuning
-MAX_TABLE_TIME_SECONDS=0
-MIN_BATCH_SIZE=5000
-MAX_BATCH_SIZE=10000
-
-# Scheduling
-ETL_INTERVAL_SECONDS=300
-EOF
+# Edit .env with your database credentials
+nano .env
 ```
 
 3. **Start services**
@@ -149,17 +120,17 @@ docker-compose logs -f etl
 | Variable | Description | Example | Default |
 |----------|-------------|---------|---------|
 | **Source Database** |
-| `SRC_DB_HOST` | Source database host | `10.87.74.68` | `localhost` |
+| `SRC_DB_HOST` | Source database host | `your-host` | `localhost` |
 | `SRC_DB_PORT` | Source database port | `3306` | `3306` |
-| `SRC_DB_NAME` | Source database name | `smartmedkku_2025.10.11` | `test` |
-| `SRC_DB_USER` | Source database user | `research01` | `root` |
+| `SRC_DB_NAME` | Source database name or pattern | `source_db` or `LATEST:backup_*` | `test` |
+| `SRC_DB_USER` | Source database user | `username` | `root` |
 | `SRC_DB_PASSWORD` | Source database password | `password` | - |
 | **Destination Database** |
 | `DST_DB_HOST` | Destination host | `host.docker.internal` | `localhost` |
 | `DST_DB_PORT` | Destination port | `3306` | `3306` |
-| `DST_DB_NAME` | Database name (supports placeholders) | `medkku_{YYYY}_{MM}_{DD}` | `test` |
+| `DST_DB_NAME` | Database name (supports placeholders) | `backup_{YYYY}_{MM}_{DD}` | `test` |
 | `DST_DB_DYNAMIC` | Enable dynamic database creation | `true` / `false` | `false` |
-| `DST_DB_USER` | Destination user | `root` | `root` |
+| `DST_DB_USER` | Destination user | `username` | `root` |
 | `DST_DB_PASSWORD` | Destination password | `password` | - |
 | **Table Filtering** |
 | `INCLUDE_TABLES` | Tables to include (comma-separated) | `tbl_user,tbl_order` | (all) |
@@ -174,6 +145,35 @@ docker-compose logs -f etl
 | `MAX_BATCH_SIZE` | Maximum batch size | `10000` | `10000` |
 | **Scheduling** |
 | `ETL_INTERVAL_SECONDS` | Auto-run interval (0=run once) | `300` | `300` |
+
+### Auto-Select Latest Database
+
+Use `LATEST:` prefix in `SRC_DB_NAME` to automatically select the latest database matching a pattern:
+
+**Examples:**
+```env
+# Select latest database starting with "smartmedkku_"
+SRC_DB_NAME=LATEST:smartmedkku_*
+# Finds: smartmedkku_2025.11.09 (latest from all smartmedkku_* databases)
+
+# Select latest backup
+SRC_DB_NAME=LATEST:backup_*
+# Finds: backup_2025_11_09 (latest from all backup_* databases)
+
+# Select latest medkku database
+SRC_DB_NAME=LATEST:medkku.*
+# Finds: medkku.2025.11.09 (latest from all medkku.* databases)
+
+# Or specify exact name
+SRC_DB_NAME=smartmedkku_2025.10.11
+# Uses: smartmedkku_2025.10.11 (exact match)
+```
+
+**How it works:**
+1. Lists all databases on the source server
+2. Filters databases matching the wildcard pattern (`*`)
+3. Sorts databases alphabetically
+4. Selects the last one (assumes date/time-based naming)
 
 ### Dynamic Database Naming
 

@@ -26,5 +26,8 @@ psutil==5.9.6
 # JSON - Fast
 orjson==3.11.4
 
+# REDCap API
+PyCap==2.6.0
+
 # Optional
 mysql-replication==1.0.7
