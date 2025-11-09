@@ -402,7 +402,11 @@ def get_env(key: str, default: str = "") -> str:
 
 
 # REDCap Configuration (from environment variables)
+<<<<<<< HEAD
 REDCAP_API_URL = get_env('REDCAP_API_URL', 'https://your-redcap-server.com/api/')
+=======
+REDCAP_API_URL = get_env('REDCAP_API_URL', '')
+>>>>>>> be59eea135bdf0e9b2d917a0ed3bef6d75698ca8
 REDCAP_API_TOKEN = get_env('REDCAP_API_TOKEN', '')
 
 
@@ -560,9 +564,9 @@ async def load_redcap_to_database(table_name: str = "redcap_data"):
             return False
         
         # 2. Get destination database connection
-        dst_host = get_env('DST_DB_HOST', 'localhost')
-        dst_port = int(get_env('DST_DB_PORT', '3306'))
-        dst_user = get_env('DST_DB_USER', 'root')
+        dst_host = get_env('DST_DB_HOST', '')
+        dst_port = int(get_env('DST_DB_PORT', ''))
+        dst_user = get_env('DST_DB_USER', '')
         dst_password = get_env('DST_DB_PASSWORD', '')
         
         # Check if dynamic mode is enabled
